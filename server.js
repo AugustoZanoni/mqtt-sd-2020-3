@@ -5,9 +5,6 @@ var mqtt = require('mqtt');
 var server = mqtt.connect('mqtt://test.mosquitto.org');
 
 // constantes definidas com os nomes dos tópicos utilizados pelo processo
-const REGISTRA_CARRO = 'registra-carro';
-const CONSULTA_CARRO = 'consulta-carro';
-const LISTA_CARROS = 'lista-carros';
 
 const LISTA_CARDAPIO = 'lista-cardapio',
     LISTA_CARRINHO = 'lista-carrinho',
@@ -40,33 +37,19 @@ server.on('connect', function () {
         }
     })
 
+    server.subscribe(LISTA_CARRINHO, (err) => {
+        if (!err) {
+            console.log('Subscrito com Sucesso em Lista Carrinho');
+        }
+    })
+
     server.subscribe(PEGA_ITEM, (err) => {
         if (!err) {
             console.log('Subscrito com Sucesso em Pega Item');
         }
     })
 
-
-
-    // server.subscribe(REGISTRA_CARRO, function (err) {
-    //     if (!err) {
-    //         console.log("Subscrito no tópico '" + REGISTRA_CARRO + "' com sucesso!");
-    //     }
-    // });
-
-    // // o processo subscreve em um tópico e, caso não ocorram erros, imprime uma mensagem na tela
-    // server.subscribe(CONSULTA_CARRO, function (err) {
-    //     if (!err) {
-    //         console.log("Subscrito no tópico '" + CONSULTA_CARRO + "' com sucesso!");
-    //     }
-    // });
-
-    // // o processo subscreve em um tópico e, caso não ocorram erros, imprime uma mensagem na tela
-    // server.subscribe(LISTA_CARROS, function (err) {
-    //     if (!err) {
-    //         console.log("Subscrito no tópico '" + LISTA_CARROS + "' com sucesso!");
-    //     }
-    // });
+    
 });
 
 // adicionado o listener para o evento 'message' (que executa quando uma mensagem é recebida)
@@ -81,6 +64,10 @@ server.on('message', function (topic, message) {
             // caso seja uma mensagem de registro, adiciona no "banco de dados"
             const id = parseInt(message);
             console.log('Função Pega Item com ID: '+id)
+            let item = cardapio.find(n => n.id == id);
+            if (item) {       
+                carrinho.push(item);
+            }
             //find
             break;
 
@@ -90,16 +77,10 @@ server.on('message', function (topic, message) {
             break;
 
         case LISTA_CARRINHO:
-            // caso seja uma mensagem de listagem de carros, retorna a lista completa no tópico "resultado-lista-carros"
-            console.log("Lista Carrinho");
-
-            server.publish('LISTA_CARRINHO', JSON.stringify(carrinho));
+            server.publish(LISTA_CARRINHO, JSON.stringify(carrinho));
             break;
         case REMOVE_ITEM_CARDAPIO:
             break
     }
-
-    // sempre imprime a mensagem recebida
-    //console.log(message.toString());
 });
 
